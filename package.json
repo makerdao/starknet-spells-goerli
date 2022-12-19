@@ -5,7 +5,7 @@
   "main": "src/app.ts",
   "repository": "https://github.com/makerdao/starknet-spells-goerli",
   "author": "Maciek Kaminski",
-  "license": "APGL-3.0",
+  "license": "AGPL-3.0",
   "scripts": {
     "build": "tsc",
     "start": "node ./bin/app.js",

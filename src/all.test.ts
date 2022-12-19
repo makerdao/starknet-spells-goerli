@@ -1,8 +1,5 @@
 import { expect } from "earljs";
-import {
-  Contract,
-  Provider,
-} from "starknet";
+import { Contract, Provider } from "starknet";
 import daiAbi from "../abis/dai_abi.json";
 import l2DaiBridgeAbi from "../abis/l2_dai_bridge_abi.json";
 import l2DaiTeleportGateway from "../abis/l2_dai_teleport_gateway_abi.json";
