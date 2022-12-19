@@ -1,7 +1,8 @@
-import assert from "assert";
 import { expect } from "earljs";
-import fs from "fs";
-import { Account, Contract, ec, json, number, Provider, uint256 } from "starknet";
+import {
+  Contract,
+  Provider,
+} from "starknet";
 import daiAbi from "../abis/dai_abi.json";
 import l2DaiBridgeAbi from "../abis/l2_dai_bridge_abi.json";
 import l2DaiTeleportGateway from "../abis/l2_dai_teleport_gateway_abi.json";
@@ -34,7 +35,11 @@ describe("setup", () => {
     });
     dai = new Contract(daiAbi, L2_DAI_ADDRESS, provider);
     bridge = new Contract(l2DaiBridgeAbi, L2_DAI_BRIDGE_ADDRESS, provider);
-    bridgeLegacy = new Contract(l2DaiBridgeAbi, L2_DAI_BRIDGE_LEGACY_ADDRESS, provider);
+    bridgeLegacy = new Contract(
+      l2DaiBridgeAbi,
+      L2_DAI_BRIDGE_LEGACY_ADDRESS,
+      provider
+    );
     teleport = new Contract(
       l2DaiTeleportGateway,
       L2_DAI_TELEPORT_GATEWAY_ADDRESS,
@@ -54,24 +59,22 @@ describe("setup", () => {
 
   describe("dai", () => {
     it("authorizations", async () => {
-      expect(await isWard(dai, bridge)).toBeTruthy()
-      expect(await isWard(dai, relay)).toBeTruthy()
-      expect(await isWard(dai, bridgeLegacy)).toBeTruthy()
-      expect(await isWard(dai, relayLegacy)).toBeTruthy()
+      expect(await isWard(dai, bridge)).toBeTruthy();
+      expect(await isWard(dai, relay)).toBeTruthy();
+      expect(await isWard(dai, bridgeLegacy)).toBeTruthy();
+      expect(await isWard(dai, relayLegacy)).toBeTruthy();
     });
   });
   describe("bridge", () => {
     it("authorizations", async () => {
-        expect(await isWard(bridge, relay)).toBeTruthy()
-        expect(await isWard(bridge, relayLegacy)).toBeTruthy()
-
+      expect(await isWard(bridge, relay)).toBeTruthy();
+      expect(await isWard(bridge, relayLegacy)).toBeTruthy();
     });
   });
   describe("teleport", () => {
     it("authorizations", async () => {
-        expect(await isWard(teleport, relay)).toBeTruthy()
-        expect(await isWard(teleport, relayLegacy)).toBeTruthy()
+      expect(await isWard(teleport, relay)).toBeTruthy();
+      expect(await isWard(teleport, relayLegacy)).toBeTruthy();
     });
   });
-
 });
