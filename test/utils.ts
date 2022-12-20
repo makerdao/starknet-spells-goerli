@@ -1,7 +1,6 @@
 import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
-import { Contract, number } from "starknet";
 
 export async function getL2ContractAt(
   hre: HardhatRuntimeEnvironment,
@@ -20,6 +19,6 @@ export async function isWard(
   hasWards: StarknetContract,
   ward: StarknetContract
 ): Promise<boolean> {
-  const {res} = await hasWards.call("wards", { user: ward.address });
+  const { res } = await hasWards.call("wards", { user: ward.address });
   return res === 1n;
 }

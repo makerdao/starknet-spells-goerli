@@ -1,10 +1,5 @@
-import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 import { expect } from "earljs";
-import { HardhatRuntimeEnvironment, StarknetContract } from "hardhat/types";
-import daiAbi from "./abis/dai_abi.json";
-import l2DaiBridgeAbi from "./abis/l2_dai_bridge_abi.json";
-import l2DaiTeleportGateway from "./abis/l2_dai_teleport_gateway_abi.json";
-import l2GovernanceRelay from "./abis/l2_governance_relay_abi.json";
+import { StarknetContract } from "hardhat/types";
 import hre from "hardhat";
 import {
   L2_DAI_ADDRESS,
