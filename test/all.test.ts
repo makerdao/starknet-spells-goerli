@@ -1,5 +1,4 @@
 import { expect } from "earljs";
-import { StarknetContract } from "hardhat/types";
 import hre from "hardhat";
 import {
   L2_DAI_ADDRESS,
@@ -9,7 +8,7 @@ import {
   L2_GOVERNANCE_RELAY_ADDRESS,
   L2_GOVERNANCE_RELAY_LEGACY_ADDRESS,
 } from "./addresses";
-import { getL2ContractAt, isWard, wrap } from "./utils";
+import { getL2ContractAt, wrap } from "./utils";
 
 export const USER =
   "0x063c94d6B73eA2284338f464f86F33E12642149F763Cd8E76E035E8E6A5Bb0e6";
@@ -23,32 +22,44 @@ describe("setup", () => {
   let relayLegacy: any;
 
   before(async () => {
-    dai = wrap(await getL2ContractAt(hre, "test/abis/dai_abi.json", L2_DAI_ADDRESS));
-    bridge =  wrap(await getL2ContractAt(
-      hre,
-      "test/abis/l2_dai_bridge_abi.json",
-      L2_DAI_BRIDGE_ADDRESS
-    ));
-    bridgeLegacy =  wrap(await getL2ContractAt(
-      hre,
-      "test/abis/l2_dai_bridge_abi.json",
-      L2_DAI_BRIDGE_LEGACY_ADDRESS
-    ));
-    teleport = wrap(await getL2ContractAt(
-      hre,
-      "test/abis/l2_dai_teleport_gateway_abi.json",
-      L2_DAI_TELEPORT_GATEWAY_ADDRESS
-    ));
-    relay = wrap(await getL2ContractAt(
-      hre,
-      "test/abis/l2_governance_relay_abi.json",
-      L2_GOVERNANCE_RELAY_ADDRESS
-    ));
-    relayLegacy = wrap(await getL2ContractAt(
-      hre,
-      "test/abis/l2_governance_relay_abi.json",
-      L2_GOVERNANCE_RELAY_LEGACY_ADDRESS
-    ));
+    dai = wrap(
+      await getL2ContractAt(hre, "test/abis/dai_abi.json", L2_DAI_ADDRESS)
+    );
+    bridge = wrap(
+      await getL2ContractAt(
+        hre,
+        "test/abis/l2_dai_bridge_abi.json",
+        L2_DAI_BRIDGE_ADDRESS
+      )
+    );
+    bridgeLegacy = wrap(
+      await getL2ContractAt(
+        hre,
+        "test/abis/l2_dai_bridge_abi.json",
+        L2_DAI_BRIDGE_LEGACY_ADDRESS
+      )
+    );
+    teleport = wrap(
+      await getL2ContractAt(
+        hre,
+        "test/abis/l2_dai_teleport_gateway_abi.json",
+        L2_DAI_TELEPORT_GATEWAY_ADDRESS
+      )
+    );
+    relay = wrap(
+      await getL2ContractAt(
+        hre,
+        "test/abis/l2_governance_relay_abi.json",
+        L2_GOVERNANCE_RELAY_ADDRESS
+      )
+    );
+    relayLegacy = wrap(
+      await getL2ContractAt(
+        hre,
+        "test/abis/l2_governance_relay_abi.json",
+        L2_GOVERNANCE_RELAY_LEGACY_ADDRESS
+      )
+    );
   });
 
   describe("dai", () => {
