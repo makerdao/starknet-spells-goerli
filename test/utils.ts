@@ -1,8 +1,16 @@
-import { AbiEntry } from "@shardlabs/starknet-hardhat-plugin/dist/src/starknet-types";
-import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
+import {
+  AbiEntry,
+  CairoFunction,
+} from "@shardlabs/starknet-hardhat-plugin/dist/src/starknet-types";
+import {
+  InvokeOptions,
+  StarknetContract,
+  StarknetContractFactory,
+} from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 import { zip } from "lodash";
+import { Account } from "@shardlabs/starknet-hardhat-plugin/dist/src/account";
 
 export async function getL2ContractAt(
   hre: HardhatRuntimeEnvironment,
@@ -30,13 +38,21 @@ function getCallArgs(inputs: any[], args: Argument[]) {
     if (input === undefined || arg === undefined) {
       throw new Error(`Can't evaluate....`);
     }
-    acc[arg.name!] = input;
+    acc[arg.name!] = arg.type === "Uint256" ? toUint256(input) : input;
     return acc;
   }, {} as any);
 }
 
 function toBigInt({ low, high }: { low: bigint; high: bigint }): bigint {
   return low + 2n ** 128n * high;
+}
+
+function toUint256(v: bigint): { low: bigint; high: bigint } {
+  const bits = v.toString(16).padStart(64, "0");
+  return {
+    low: BigInt(`0x${bits.slice(32)}`),
+    high: BigInt(`0x${bits.slice(0, 32)}`),
+  };
 }
 
 function getResults(res: any, args: Argument[]) {
@@ -47,15 +63,35 @@ function getResults(res: any, args: Argument[]) {
   return results.length === 1 ? results[0] : results;
 }
 
-export function wrap(contract: StarknetContract) {
+function getOptions(...args: any[]): InvokeOptions | undefined {
+  if (
+    args.length > 0 &&
+    ("maxFee" in args[args.length - 1] || "nonce" in args[args.length - 1])
+  ) {
+    return args[args.length - 1] as InvokeOptions;
+  }
+  return undefined;
+}
+
+export function wrap(hre: any, contract: StarknetContract) {
+  let connectedAccount: Account;
   return new Proxy(
     {},
     {
-      get(_, callName) {
+      get(_, _callName) {
+        const callName = _callName.toString();
         if (callName === "address") {
           return contract.address;
         }
-        const abiEntry = contract.abi[callName];
+
+        if (callName === "connect") {
+          return (account: Account) => {
+            connectedAccount = account;
+          };
+        }
+
+        const abiEntry = contract.getAbi()[callName];
+
         if (!abiEntry) {
           throw new Error(
             `Can't evaluate: ${callName} in contract ${contract.address}`
@@ -66,11 +102,33 @@ export function wrap(contract: StarknetContract) {
             `Can't evaluate a non function: ${callName} in contract ${contract.address}`
           );
         }
-        const cairoFunction: CairoFunction = abiEntry;
+        const cairoFunction = abiEntry as CairoFunction;
         return async (...args: any[]) => {
-          const callArgs = getCallArgs(args, cairoFunction.inputs);
-          const res = await contract.call(callName, callArgs);
-          return getResults(res, cairoFunction.outputs);
+          if (cairoFunction.stateMutability === "view") {
+            const res = await contract.call(
+              callName,
+              getCallArgs(args, cairoFunction.inputs)
+            );
+            return getResults(res, cairoFunction.outputs);
+          } else {
+            if (!connectedAccount) {
+              throw new Error(
+                `No account connected to contract ${contract.address}`
+              );
+            }
+
+            const parameters: Parameters<typeof connectedAccount.invoke> = [
+              contract,
+              callName,
+              getCallArgs(args, cairoFunction.inputs),
+            ];
+            if (getOptions(args)) {
+              parameters.push(getOptions(args));
+            }
+
+            const txHash = await connectedAccount.invoke(...parameters);
+            return await hre.starknet.getTransactionReceipt(txHash);
+          }
         };
       },
     }

@@ -1,3 +1,4 @@
+import { Account } from "@shardlabs/starknet-hardhat-plugin/dist/src/account";
 import { PredeployedAccount } from "@shardlabs/starknet-hardhat-plugin/dist/src/devnet-utils";
 import { expect } from "earljs";
 import hre from "hardhat";
@@ -21,13 +22,15 @@ describe("setup", () => {
   let teleport: any;
   let relay: any;
   let relayLegacy: any;
-  let predeployedAccounts: PredeployedAccount[];
+  let predeployedAccounts: Account[];
 
   before(async () => {
     dai = wrap(
+      hre,
       await getL2ContractAt(hre, "test/abis/dai_abi.json", L2_DAI_ADDRESS)
     );
     bridge = wrap(
+      hre,
       await getL2ContractAt(
         hre,
         "test/abis/l2_dai_bridge_abi.json",
@@ -35,6 +38,7 @@ describe("setup", () => {
       )
     );
     bridgeLegacy = wrap(
+      hre,
       await getL2ContractAt(
         hre,
         "test/abis/l2_dai_bridge_abi.json",
@@ -42,6 +46,7 @@ describe("setup", () => {
       )
     );
     teleport = wrap(
+      hre,
       await getL2ContractAt(
         hre,
         "test/abis/l2_dai_teleport_gateway_abi.json",
@@ -49,6 +54,7 @@ describe("setup", () => {
       )
     );
     relay = wrap(
+      hre,
       await getL2ContractAt(
         hre,
         "test/abis/l2_governance_relay_abi.json",
@@ -56,13 +62,26 @@ describe("setup", () => {
       )
     );
     relayLegacy = wrap(
+      hre,
       await getL2ContractAt(
         hre,
         "test/abis/l2_governance_relay_abi.json",
         L2_GOVERNANCE_RELAY_LEGACY_ADDRESS
       )
     );
-    predeployedAccounts = await hre.starknet.devnet.getPredeployedAccounts();
+
+    predeployedAccounts = [];
+    for (const {
+      address,
+      private_key,
+    } of await hre.starknet.devnet.getPredeployedAccounts()) {
+      const account =
+        await hre.starknet.OpenZeppelinAccount.getAccountFromAddress(
+          address,
+          private_key
+        );
+      predeployedAccounts.push(await account);
+    }
   });
 
   describe("dai", () => {
@@ -78,31 +97,42 @@ describe("setup", () => {
       expect(await bridge.wards(relay.address)).toBeTruthy();
       expect(await bridge.wards(relayLegacy.address)).toBeTruthy();
     });
-    it("handles deposits", async () => {
+    it("handles deposits and widthdrawals", async () => {
       const l1Bridge = `0x${(await bridge.bridge()).toString(16)}`;
-      const recipient = predeployedAccounts[0].address;
+      const recipient = predeployedAccounts[0];
       const selector =
         "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5";
-      const balanceBeforeDeposit: bigint = await dai.balanceOf(recipient);
+      const balanceBefore: bigint = await dai.balanceOf(recipient.address);
       const amount = 100n;
-
       const body = {
         l2_contract_address: bridge.address,
         entry_point_selector: selector,
         l1_contract_address: l1Bridge,
-        payload: [recipient, `0x${amount.toString(16)}`, "0x0", "0x0"],
+        payload: [recipient.address, `0x${amount.toString(16)}`, "0x0", "0x0"],
         nonce: "0x0",
       };
-
       await hre.starknet.devnet.requestHandler(
         "/postman/send_message_to_l2",
         "POST",
         body
       );
 
-      const balanceAfterDeposit: bigint = await dai.balanceOf(recipient);
+      const balanceAfter: bigint = await dai.balanceOf(recipient.address);
 
-      expect(balanceBeforeDeposit + amount).toEqual(balanceAfterDeposit);
+      expect(balanceBefore + amount).toEqual(balanceAfter);
+
+      dai.connect(recipient);
+      await dai.increaseAllowance(bridge.address, balanceAfter)
+
+      bridge.connect(recipient);
+
+      const { status } = await bridge.initiate_withdraw(1, balanceAfter);
+      expect(status).toEqual("ACCEPTED_ON_L2");
+
+      const balanceAfterWidthdrawal: bigint = await dai.balanceOf(
+        recipient.address
+      );
+      expect(balanceAfterWidthdrawal).toEqual(0n);
     });
   });
   describe("teleport", () => {
