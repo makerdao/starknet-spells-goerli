@@ -1,5 +1,4 @@
 import { Account } from "@shardlabs/starknet-hardhat-plugin/dist/src/account";
-import { PredeployedAccount } from "@shardlabs/starknet-hardhat-plugin/dist/src/devnet-utils";
 import { expect } from "earljs";
 import hre from "hardhat";
 import {
@@ -80,7 +79,7 @@ describe("setup", () => {
           address,
           private_key
         );
-      predeployedAccounts.push(await account);
+      predeployedAccounts.push(account);
     }
   });
 
@@ -122,7 +121,7 @@ describe("setup", () => {
       expect(balanceBefore + amount).toEqual(balanceAfter);
 
       dai.connect(recipient);
-      await dai.increaseAllowance(bridge.address, balanceAfter)
+      await dai.increaseAllowance(bridge.address, balanceAfter);
 
       bridge.connect(recipient);
 

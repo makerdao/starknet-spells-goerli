@@ -74,7 +74,7 @@ function getOptions(...args: any[]): InvokeOptions | undefined {
 }
 
 export function wrap(hre: any, contract: StarknetContract) {
-  let connectedAccount: Account;
+  let connectedAccount: Account | undefined;
   return new Proxy(
     {},
     {
@@ -90,7 +90,7 @@ export function wrap(hre: any, contract: StarknetContract) {
           };
         }
 
-        const abiEntry = contract.getAbi()[callName];
+        const abiEntry = contract.getAbi()[callName] as AbiEntry | undefined;
 
         if (!abiEntry) {
           throw new Error(
