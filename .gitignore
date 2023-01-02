@@ -2,3 +2,4 @@ node_modules
 yarn-error.log
 devnet.log
 cache
+starknet-artifacts
