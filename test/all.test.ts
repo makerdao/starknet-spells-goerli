@@ -1,3 +1,4 @@
+import { PredeployedAccount } from "@shardlabs/starknet-hardhat-plugin/dist/src/devnet-utils";
 import { expect } from "earljs";
 import hre from "hardhat";
 import {
@@ -20,6 +21,7 @@ describe("setup", () => {
   let teleport: any;
   let relay: any;
   let relayLegacy: any;
+  let predeployedAccounts: PredeployedAccount[];
 
   before(async () => {
     dai = wrap(
@@ -60,10 +62,11 @@ describe("setup", () => {
         L2_GOVERNANCE_RELAY_LEGACY_ADDRESS
       )
     );
+    predeployedAccounts = await hre.starknet.devnet.getPredeployedAccounts();
   });
 
   describe("dai", () => {
-    it("authorizations", async () => {
+    it("has proper wards", async () => {
       expect(await dai.wards(bridge.address)).toBeTruthy();
       expect(await dai.wards(relay.address)).toBeTruthy();
       expect(await dai.wards(bridgeLegacy.address)).toBeTruthy();
@@ -71,13 +74,39 @@ describe("setup", () => {
     });
   });
   describe("bridge", () => {
-    it("authorizations", async () => {
+    it("has proper wards", async () => {
       expect(await bridge.wards(relay.address)).toBeTruthy();
       expect(await bridge.wards(relayLegacy.address)).toBeTruthy();
     });
+    it("handles deposits", async () => {
+      const l1Bridge = `0x${(await bridge.bridge()).toString(16)}`;
+      const recipient = predeployedAccounts[0].address;
+      const selector =
+        "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5";
+      const balanceBeforeDeposit: bigint = await dai.balanceOf(recipient);
+      const amount = 100n;
+
+      const body = {
+        l2_contract_address: bridge.address,
+        entry_point_selector: selector,
+        l1_contract_address: l1Bridge,
+        payload: [recipient, `0x${amount.toString(16)}`, "0x0", "0x0"],
+        nonce: "0x0",
+      };
+
+      await hre.starknet.devnet.requestHandler(
+        "/postman/send_message_to_l2",
+        "POST",
+        body
+      );
+
+      const balanceAfterDeposit: bigint = await dai.balanceOf(recipient);
+
+      expect(balanceBeforeDeposit + amount).toEqual(balanceAfterDeposit);
+    });
   });
   describe("teleport", () => {
-    it("authorizations", async () => {
+    it("has proper wards", async () => {
       expect(await teleport.wards(relay.address)).toBeTruthy();
       expect(await teleport.wards(relayLegacy.address)).toBeTruthy();
     });

@@ -25,14 +25,26 @@ export async function isWard(
   return res === 1n;
 }
 
-function getCallArgs(inputs, args) {
-  return zip(inputs, args).reduce((result, [abi, arg]: any[]) => {
-    if (abi === undefined || arg === undefined) {
+function getCallArgs(inputs: any[], args: Argument[]) {
+  return zip(inputs, args).reduce((acc, [input, arg]) => {
+    if (input === undefined || arg === undefined) {
       throw new Error(`Can't evaluate....`);
     }
-    result[abi.name!] = arg;
-    return result;
+    acc[arg.name!] = input;
+    return acc;
   }, {} as any);
+}
+
+function toBigInt({ low, high }: { low: bigint; high: bigint }): bigint {
+  return low + 2n ** 128n * high;
+}
+
+function getResults(res: any, args: Argument[]) {
+  const results = args.reduce((acc: any[], { name, type }: AbiEntry) => {
+    acc.push(type === "Uint256" ? toBigInt(res[name]) : res[name]);
+    return acc;
+  }, []);
+  return results.length === 1 ? results[0] : results;
 }
 
 export function wrap(contract: StarknetContract) {
@@ -43,7 +55,6 @@ export function wrap(contract: StarknetContract) {
         if (callName === "address") {
           return contract.address;
         }
-        // console.log(callName, contract.abi[callName]);
         const abiEntry = contract.abi[callName];
         if (!abiEntry) {
           throw new Error(
@@ -57,17 +68,9 @@ export function wrap(contract: StarknetContract) {
         }
         const cairoFunction: CairoFunction = abiEntry;
         return async (...args: any[]) => {
-          const callArgs = getCallArgs(cairoFunction.inputs, args);
+          const callArgs = getCallArgs(args, cairoFunction.inputs);
           const res = await contract.call(callName, callArgs);
-
-          const results = cairoFunction.outputs.reduce(
-            (result: any, { name }: AbiEntry) => {
-              result[result.length] = res[name];
-              return result;
-            },
-            []
-          );
-          return results.length === 1 ? results[0] : results;
+          return getResults(res, cairoFunction.outputs);
         };
       },
     }
