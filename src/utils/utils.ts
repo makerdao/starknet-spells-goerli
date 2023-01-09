@@ -1,7 +1,4 @@
-import {
-  StarknetContract,
-  StarknetContractFactory,
-} from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
+import { StarknetContractFactory } from "@shardlabs/starknet-hardhat-plugin/dist/src/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 

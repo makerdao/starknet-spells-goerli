@@ -2,7 +2,6 @@ import { Account } from "@shardlabs/starknet-hardhat-plugin/dist/src/account";
 import { expect } from "earljs";
 import hre from "hardhat";
 import {
-  L1_GOVERNANCE_RELAY_ADDRESS,
   L2_DAI_ADDRESS,
   L2_DAI_BRIDGE_ADDRESS,
   L2_DAI_BRIDGE_LEGACY_ADDRESS,
@@ -84,14 +83,13 @@ describe("setup", () => {
       predeployedAccounts.push(account);
     }
 
-    await hre.run("starknet-compile", { paths: ["src/spell.cairo"] });
-
-    const spellDeployer = predeployedAccounts[0];
-    const spellFactory = await hre.starknet.getContractFactory("spell");
-    await spellDeployer.declare(spellFactory);
-    const spell = await spellDeployer.deploy(spellFactory, {});
-
     // TODO: does not work yet, waiting for shardlabs
+    // await hre.run("starknet-compile", { paths: ["src/spell.cairo"] });
+    //
+    // const spellDeployer = predeployedAccounts[0];
+    // const spellFactory = await hre.starknet.getContractFactory("spell");
+    // await spellDeployer.declare(spellFactory);
+    // const spell = await spellDeployer.deploy(spellFactory, {});
     // // @ts-ignore
     // const {
     //   data: { transaction_hash },

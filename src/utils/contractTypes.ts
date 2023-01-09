@@ -58,130 +58,130 @@ export type Contract<C extends Abi> = {
 
 // export type DaiType = typeof daiAbi;
 
-const daiAbi = [
-  //   {
-  //     inputs: [
-  //       {
-  //         name: "ward",
-  //         type: "felt",
-  //       },
-  //     ],
-  //     name: "constructor",
-  //     outputs: [],
-  //     type: "constructor",
-  //   },
-  {
-    inputs: [
-      {
-        name: "owner",
-        type: "felt",
-      },
-      {
-        name: "spender",
-        type: "felt",
-      },
-    ],
-    name: "allowance",
-    outputs: [
-      {
-        name: "res",
-        type: "Uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        name: "owner",
-        type: "felt",
-      },
-      {
-        name: "spender",
-        type: "felt",
-      },
-    ],
-    name: "fake",
-    outputs: [
-      {
-        name: "a",
-        type: "Uint256",
-      },
-      {
-        name: "b",
-        type: "Uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        name: "user",
-        type: "felt",
-      },
-    ],
-    name: "wards",
-    outputs: [
-      {
-        name: "res",
-        type: "felt",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        name: "account",
-        type: "felt",
-      },
-      {
-        name: "amount",
-        type: "Uint256",
-      },
-    ],
-    name: "mint",
-    outputs: [],
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        name: "user",
-        type: "felt",
-      },
-    ],
-    name: "rely",
-    outputs: [],
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        name: "recipient",
-        type: "felt",
-      },
-      {
-        name: "amount",
-        type: "Uint256",
-      },
-    ],
-    name: "transfer",
-    outputs: [
-      {
-        name: "res",
-        type: "felt",
-      },
-    ],
-    type: "function",
-  },
-] as const;
-
-type DaiAbi = typeof daiAbi;
-type Dai = Contract<DaiAbi>;
-
-let d: Dai;
+// const daiAbi = [
+//   //   {
+//   //     inputs: [
+//   //       {
+//   //         name: "ward",
+//   //         type: "felt",
+//   //       },
+//   //     ],
+//   //     name: "constructor",
+//   //     outputs: [],
+//   //     type: "constructor",
+//   //   },
+//   {
+//     inputs: [
+//       {
+//         name: "owner",
+//         type: "felt",
+//       },
+//       {
+//         name: "spender",
+//         type: "felt",
+//       },
+//     ],
+//     name: "allowance",
+//     outputs: [
+//       {
+//         name: "res",
+//         type: "Uint256",
+//       },
+//     ],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         name: "owner",
+//         type: "felt",
+//       },
+//       {
+//         name: "spender",
+//         type: "felt",
+//       },
+//     ],
+//     name: "fake",
+//     outputs: [
+//       {
+//         name: "a",
+//         type: "Uint256",
+//       },
+//       {
+//         name: "b",
+//         type: "Uint256",
+//       },
+//     ],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         name: "user",
+//         type: "felt",
+//       },
+//     ],
+//     name: "wards",
+//     outputs: [
+//       {
+//         name: "res",
+//         type: "felt",
+//       },
+//     ],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         name: "account",
+//         type: "felt",
+//       },
+//       {
+//         name: "amount",
+//         type: "Uint256",
+//       },
+//     ],
+//     name: "mint",
+//     outputs: [],
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         name: "user",
+//         type: "felt",
+//       },
+//     ],
+//     name: "rely",
+//     outputs: [],
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         name: "recipient",
+//         type: "felt",
+//       },
+//       {
+//         name: "amount",
+//         type: "Uint256",
+//       },
+//     ],
+//     name: "transfer",
+//     outputs: [
+//       {
+//         name: "res",
+//         type: "felt",
+//       },
+//     ],
+//     type: "function",
+//   },
+// ] as const;
+//
+// type DaiAbi = typeof daiAbi;
+// type Dai = Contract<DaiAbi>;
+//
+// let d: Dai;
