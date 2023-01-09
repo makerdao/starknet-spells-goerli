@@ -11,7 +11,7 @@
     "devnet": "./scripts/devnet.sh",
     "format": "prettier --check \"./**/*.ts\"",
     "format:fix": "prettier --write \"./**/*.ts\"",
-    "lint": "eslint --ext .ts test",
+    "lint": "eslint --ext .ts src",
     "lint:fix": "yarn lint --fix",
     "test": "yarn hardhat test",
     "test:wait": "wget -q --retry-connrefused --delete-after http://0.0.0.0:5050/fork_status && yarn test",

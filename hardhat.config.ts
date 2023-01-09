@@ -33,9 +33,9 @@ const config = {
   paths: {
     artifacts: "./artifacts",
     cache: "./cache",
-    sources: "./contracts",
-    tests: "./test",
-    starknetSources: "./contracts",
+    sources: "./src",
+    tests: "./src",
+    starknetSources: "./src",
     starknetArtifacts: "./starknet-artifacts",
   },
 };

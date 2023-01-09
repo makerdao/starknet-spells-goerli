@@ -2,6 +2,7 @@ import { Account } from "@shardlabs/starknet-hardhat-plugin/dist/src/account";
 import { expect } from "earljs";
 import hre from "hardhat";
 import {
+  L1_GOVERNANCE_RELAY_ADDRESS,
   L2_DAI_ADDRESS,
   L2_DAI_BRIDGE_ADDRESS,
   L2_DAI_BRIDGE_LEGACY_ADDRESS,
@@ -9,62 +10,63 @@ import {
   L2_GOVERNANCE_RELAY_ADDRESS,
   L2_GOVERNANCE_RELAY_LEGACY_ADDRESS,
 } from "./addresses";
-import { getL2ContractAt, wrap } from "./utils";
-
-export const USER =
-  "0x063c94d6B73eA2284338f464f86F33E12642149F763Cd8E76E035E8E6A5Bb0e6";
+import { getL2ContractAt } from "./utils/utils";
+import daiAbi from "./abis/daiAbi";
+import { WrappedStarknetContract, wrapTyped } from "./utils/wrap";
+import l2DaiBridgeAbi from "./abis/l2DaiBridgeAbi";
+import l2DaiTeleportGatewayAbi from "./abis/l2DaiTeleportGatewayAbi";
+import l2GovernanceRelayAbi from "./abis/l2GovernanceRelayAbi";
 
 describe("setup", () => {
-  let dai: any;
-  let bridge: any;
-  let bridgeLegacy: any;
-  let teleport: any;
-  let relay: any;
-  let relayLegacy: any;
+  let dai: WrappedStarknetContract<typeof daiAbi>;
+  let bridge: WrappedStarknetContract<typeof l2DaiBridgeAbi>;
+  let bridgeLegacy: WrappedStarknetContract<typeof l2DaiBridgeAbi>;
+  let teleport: WrappedStarknetContract<typeof l2DaiTeleportGatewayAbi>;
+  let relay: WrappedStarknetContract<typeof l2GovernanceRelayAbi>;
+  let relayLegacy: WrappedStarknetContract<typeof l2GovernanceRelayAbi>;
   let predeployedAccounts: Account[];
-
   before(async () => {
-    dai = wrap(
+    dai = wrapTyped(
       hre,
-      await getL2ContractAt(hre, "test/abis/dai_abi.json", L2_DAI_ADDRESS)
+      await getL2ContractAt(hre, "src/abis/dai_abi.json", L2_DAI_ADDRESS)
     );
-    bridge = wrap(
+    bridge = wrapTyped(
       hre,
       await getL2ContractAt(
         hre,
-        "test/abis/l2_dai_bridge_abi.json",
+        "src/abis/l2_dai_bridge_abi.json",
         L2_DAI_BRIDGE_ADDRESS
       )
     );
-    bridgeLegacy = wrap(
+    bridgeLegacy = wrapTyped(
       hre,
       await getL2ContractAt(
         hre,
-        "test/abis/l2_dai_bridge_abi.json",
+        "src/abis/l2_dai_bridge_abi.json",
         L2_DAI_BRIDGE_LEGACY_ADDRESS
       )
     );
-    teleport = wrap(
+    teleport = wrapTyped(
       hre,
       await getL2ContractAt(
         hre,
-        "test/abis/l2_dai_teleport_gateway_abi.json",
+        "src/abis/l2_dai_teleport_gateway_abi.json",
         L2_DAI_TELEPORT_GATEWAY_ADDRESS
       )
     );
-    relay = wrap(
+    relay = wrapTyped(
       hre,
       await getL2ContractAt(
         hre,
-        "test/abis/l2_governance_relay_abi.json",
+        "src/abis/l2_governance_relay_abi.json",
         L2_GOVERNANCE_RELAY_ADDRESS
       )
     );
-    relayLegacy = wrap(
+    relayLegacy = wrapTyped(
       hre,
       await getL2ContractAt(
         hre,
-        "test/abis/l2_governance_relay_abi.json",
+        "src/abis/l2_governance_relay_abi.json",
         L2_GOVERNANCE_RELAY_LEGACY_ADDRESS
       )
     );
@@ -81,6 +83,34 @@ describe("setup", () => {
         );
       predeployedAccounts.push(account);
     }
+
+    await hre.run("starknet-compile", { paths: ["src/spell.cairo"] });
+
+    const spellDeployer = predeployedAccounts[0];
+    const spellFactory = await hre.starknet.getContractFactory("spell");
+    await spellDeployer.declare(spellFactory);
+    const spell = await spellDeployer.deploy(spellFactory, {});
+
+    // TODO: does not work yet, waiting for shardlabs
+    // // @ts-ignore
+    // const {
+    //   data: { transaction_hash },
+    // } = await hre.starknet.devnet.requestHandler(
+    //   "/postman/send_message_to_l2",
+    //   "POST",
+    //   {
+    //     l2_contract_address: relay.address,
+    //     entry_point_selector:
+    //       "0xa9ebda8d3a6595cf15b1d46ea0e440a9810c2b99a3e889c6b3b46f7ff0e5e1",
+    //     l1_contract_address: L1_GOVERNANCE_RELAY_ADDRESS,
+    //     payload: [spell.address],
+    //     nonce: "0x0",
+    //   }
+    // );
+
+    // console.log(transaction_hash, transaction_hash.toString(16))
+    // const receipt = await hre.starknet.getTransactionReceipt(`0x${transaction_hash.toString(16)}`);
+    // console.log(receipt)
   });
 
   describe("dai", () => {
@@ -103,17 +133,21 @@ describe("setup", () => {
         "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5";
       const balanceBefore: bigint = await dai.balanceOf(recipient.address);
       const amount = 100n;
-      const body = {
-        l2_contract_address: bridge.address,
-        entry_point_selector: selector,
-        l1_contract_address: l1Bridge,
-        payload: [recipient.address, `0x${amount.toString(16)}`, "0x0", "0x0"],
-        nonce: "0x0",
-      };
       await hre.starknet.devnet.requestHandler(
         "/postman/send_message_to_l2",
         "POST",
-        body
+        {
+          l2_contract_address: bridge.address,
+          entry_point_selector: selector,
+          l1_contract_address: l1Bridge,
+          payload: [
+            recipient.address,
+            `0x${amount.toString(16)}`,
+            "0x0",
+            "0x0",
+          ],
+          nonce: "0x0",
+        }
       );
 
       const balanceAfter: bigint = await dai.balanceOf(recipient.address);
@@ -125,7 +159,7 @@ describe("setup", () => {
 
       bridge.connect(recipient);
 
-      const { status } = await bridge.initiate_withdraw(1, balanceAfter);
+      const { status } = await bridge.initiate_withdraw(1n, balanceAfter);
       expect(status).toEqual("ACCEPTED_ON_L2");
 
       const balanceAfterWidthdrawal: bigint = await dai.balanceOf(
