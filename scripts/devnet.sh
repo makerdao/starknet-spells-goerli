@@ -2,7 +2,7 @@
 set -e
 cd "$(dirname "$0")"
 
-image=shardlabs/starknet-devnet:0.4.3
+image=shardlabs/starknet-devnet:0.4.4
 
 if [ "$(uname)" == "Darwin" ]; then
     image="${image}-arm"

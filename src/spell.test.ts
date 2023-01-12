@@ -2,6 +2,7 @@ import { Account } from "@shardlabs/starknet-hardhat-plugin/dist/src/account";
 import { expect } from "earljs";
 import hre from "hardhat";
 import {
+  L1_GOVERNANCE_RELAY_ADDRESS,
   L2_DAI_ADDRESS,
   L2_DAI_BRIDGE_ADDRESS,
   L2_DAI_BRIDGE_LEGACY_ADDRESS,
@@ -83,46 +84,44 @@ describe("setup", () => {
       predeployedAccounts.push(account);
     }
 
-    // TODO: does not work yet, waiting for shardlabs
-    // await hre.run("starknet-compile", { paths: ["src/spell.cairo"] });
-    //
-    // const spellDeployer = predeployedAccounts[0];
-    // const spellFactory = await hre.starknet.getContractFactory("spell");
-    // await spellDeployer.declare(spellFactory);
-    // const spell = await spellDeployer.deploy(spellFactory, {});
-    // // @ts-ignore
-    // const {
-    //   data: { transaction_hash },
-    // } = await hre.starknet.devnet.requestHandler(
-    //   "/postman/send_message_to_l2",
-    //   "POST",
-    //   {
-    //     l2_contract_address: relay.address,
-    //     entry_point_selector:
-    //       "0xa9ebda8d3a6595cf15b1d46ea0e440a9810c2b99a3e889c6b3b46f7ff0e5e1",
-    //     l1_contract_address: L1_GOVERNANCE_RELAY_ADDRESS,
-    //     payload: [spell.address],
-    //     nonce: "0x0",
-    //   }
-    // );
+    await hre.run("starknet-compile", { paths: ["src/spell.cairo"] });
 
-    // console.log(transaction_hash, transaction_hash.toString(16))
-    // const receipt = await hre.starknet.getTransactionReceipt(`0x${transaction_hash.toString(16)}`);
-    // console.log(receipt)
+    const spellDeployer = predeployedAccounts[0];
+    const spellFactory = await hre.starknet.getContractFactory("spell");
+    const classHash = await spellDeployer.declare(spellFactory);
+
+    // @ts-ignore
+    const {
+      data: { transaction_hash },
+    } = await hre.starknet.devnet.requestHandler(
+      "/postman/send_message_to_l2",
+      "POST",
+      {
+        l2_contract_address: relay.address,
+        entry_point_selector:
+          "0xa9ebda8d3a6595cf15b1d46ea0e440a9810c2b99a3e889c6b3b46f7ff0e5e1",
+        l1_contract_address: L1_GOVERNANCE_RELAY_ADDRESS,
+        payload: [classHash],
+        nonce: "0x0",
+      }
+    );
+
+    const receipt = await hre.starknet.getTransactionReceipt(transaction_hash);
+    expect(receipt.status).toEqual("ACCEPTED_ON_L2");
   });
 
   describe("dai", () => {
     it("has proper wards", async () => {
       expect(await dai.wards(bridge.address)).toBeTruthy();
       expect(await dai.wards(relay.address)).toBeTruthy();
-      expect(await dai.wards(bridgeLegacy.address)).toBeTruthy();
-      expect(await dai.wards(relayLegacy.address)).toBeTruthy();
+      expect(await dai.wards(bridgeLegacy.address)).toBeFalsy();
+      expect(await dai.wards(relayLegacy.address)).toBeFalsy();
     });
   });
   describe("bridge", () => {
     it("has proper wards", async () => {
       expect(await bridge.wards(relay.address)).toBeTruthy();
-      expect(await bridge.wards(relayLegacy.address)).toBeTruthy();
+      expect(await bridge.wards(relayLegacy.address)).toBeFalsy();
     });
     it("handles deposits and widthdrawals", async () => {
       const l1Bridge = `0x${(await bridge.bridge()).toString(16)}`;
@@ -169,7 +168,7 @@ describe("setup", () => {
   describe("teleport", () => {
     it("has proper wards", async () => {
       expect(await teleport.wards(relay.address)).toBeTruthy();
-      expect(await teleport.wards(relayLegacy.address)).toBeTruthy();
+      expect(await teleport.wards(relayLegacy.address)).toBeFalsy();
     });
   });
 });
