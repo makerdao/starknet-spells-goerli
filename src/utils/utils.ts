@@ -36,13 +36,14 @@ export async function sendMessageToL2(
   hre: HardhatRuntimeEnvironment,
   params: SendMessageToL2Params
 ) {
-
   return (
     // @ts-ignore
-    await hre.starknet.devnet.requestHandler(
-      "/postman/send_message_to_l2",
-      "POST",
-      params
-    )
-  ).data as SendMessageToL2Result;
+    (
+      await hre.starknet.devnet.requestHandler(
+        "/postman/send_message_to_l2",
+        "POST",
+        params
+      )
+    ).data as SendMessageToL2Result
+  );
 }

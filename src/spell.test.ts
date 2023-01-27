@@ -27,7 +27,7 @@ describe("goerli spell", () => {
   let relayLegacy: WrappedStarknetContract<typeof l2GovernanceRelayAbi>;
   let predeployedAccounts: Account[];
   before(async () => {
-    await hre.starknet.devnet.restart()
+    await hre.starknet.devnet.restart();
 
     dai = wrapTyped(
       hre,
