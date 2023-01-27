@@ -8,6 +8,12 @@ namespace HasWards {
     }
 }
 
+@contract_interface
+namespace TeleportGateway {
+    func file(what: felt, domain: felt, data: felt) {
+    }
+}
+
 @external
 func execute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     const dai = 0x03e85bfbb8e2a42b7bead9e88e9a1b19dbccf661471061807292120462396ec9;
@@ -24,6 +30,9 @@ func execute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() 
 
     // deny legacy bridge
     HasWards.deny(dai, bridge_legacy);
+
+    // remove STA-GOER-A from valid domains
+    TeleportGateway.file(teleport_gateway, 'valid_domains', 'ETH-GOER-A', 0);
 
     return ();
 }
