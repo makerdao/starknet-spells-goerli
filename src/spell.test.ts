@@ -9,15 +9,16 @@ import {
   L2_DAI_TELEPORT_GATEWAY_ADDRESS,
   L2_GOVERNANCE_RELAY_ADDRESS,
   L2_GOVERNANCE_RELAY_LEGACY_ADDRESS,
+  TRG_DOMAIN,
 } from "./addresses";
-import { getL2ContractAt } from "./utils/utils";
+import { getL2ContractAt, l2String, sendMessageToL2 } from "./utils/utils";
 import daiAbi from "./abis/daiAbi";
 import { WrappedStarknetContract, wrapTyped } from "./utils/wrap";
 import l2DaiBridgeAbi from "./abis/l2DaiBridgeAbi";
 import l2DaiTeleportGatewayAbi from "./abis/l2DaiTeleportGatewayAbi";
 import l2GovernanceRelayAbi from "./abis/l2GovernanceRelayAbi";
 
-describe("setup", () => {
+describe("goerli spell", () => {
   let dai: WrappedStarknetContract<typeof daiAbi>;
   let bridge: WrappedStarknetContract<typeof l2DaiBridgeAbi>;
   let bridgeLegacy: WrappedStarknetContract<typeof l2DaiBridgeAbi>;
@@ -26,6 +27,8 @@ describe("setup", () => {
   let relayLegacy: WrappedStarknetContract<typeof l2GovernanceRelayAbi>;
   let predeployedAccounts: Account[];
   before(async () => {
+    await hre.starknet.devnet.restart();
+
     dai = wrapTyped(
       hre,
       await getL2ContractAt(hre, "src/abis/dai_abi.json", L2_DAI_ADDRESS)
@@ -91,20 +94,14 @@ describe("setup", () => {
     const classHash = await spellDeployer.declare(spellFactory);
 
     // @ts-ignore
-    const {
-      data: { transaction_hash },
-    } = await hre.starknet.devnet.requestHandler(
-      "/postman/send_message_to_l2",
-      "POST",
-      {
-        l2_contract_address: relay.address,
-        entry_point_selector:
-          "0xa9ebda8d3a6595cf15b1d46ea0e440a9810c2b99a3e889c6b3b46f7ff0e5e1",
-        l1_contract_address: L1_GOVERNANCE_RELAY_ADDRESS,
-        payload: [classHash],
-        nonce: "0x0",
-      }
-    );
+    const { transaction_hash } = await sendMessageToL2(hre, {
+      l2_contract_address: relay.address,
+      entry_point_selector:
+        "0xa9ebda8d3a6595cf15b1d46ea0e440a9810c2b99a3e889c6b3b46f7ff0e5e1",
+      l1_contract_address: L1_GOVERNANCE_RELAY_ADDRESS,
+      payload: [classHash],
+      nonce: "0x0",
+    });
 
     const receipt = await hre.starknet.getTransactionReceipt(transaction_hash);
     expect(receipt.status).toEqual("ACCEPTED_ON_L2");
@@ -130,22 +127,15 @@ describe("setup", () => {
         "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5";
       const balanceBefore: bigint = await dai.balanceOf(recipient.address);
       const amount = 100n;
-      await hre.starknet.devnet.requestHandler(
-        "/postman/send_message_to_l2",
-        "POST",
-        {
-          l2_contract_address: bridge.address,
-          entry_point_selector: selector,
-          l1_contract_address: l1Bridge,
-          payload: [
-            recipient.address,
-            `0x${amount.toString(16)}`,
-            "0x0",
-            "0x0",
-          ],
-          nonce: "0x0",
-        }
-      );
+
+      // replace with a call on devnet object when it is available
+      await sendMessageToL2(hre, {
+        l2_contract_address: bridge.address,
+        entry_point_selector: selector,
+        l1_contract_address: l1Bridge,
+        payload: [recipient.address, `0x${amount.toString(16)}`, "0x0", "0x0"],
+        nonce: "0x0",
+      });
 
       const balanceAfter: bigint = await dai.balanceOf(recipient.address);
 
@@ -169,6 +159,17 @@ describe("setup", () => {
     it("has proper wards", async () => {
       expect(await teleport.wards(relay.address)).toBeTruthy();
       expect(await teleport.wards(relayLegacy.address)).toBeFalsy();
+    });
+    it("valid_domains are properly set", async () => {
+      expect(await teleport.valid_domains(l2String(TRG_DOMAIN))).toBeFalsy();
+    });
+    it("initiate_teleport behaves correctly", async () => {
+      teleport.connect(predeployedAccounts[0]);
+      await expect(
+        teleport.initiate_teleport(l2String(TRG_DOMAIN), 0n, 1n, 0n)
+      ).toBeRejected(
+        expect.stringMatching("l2_dai_teleport_gateway/invalid-domain")
+      );
     });
   });
 });
