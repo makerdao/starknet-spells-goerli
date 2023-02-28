@@ -11,7 +11,7 @@ import {
   L2_GOVERNANCE_RELAY_LEGACY_ADDRESS,
   TRG_DOMAIN,
 } from "./addresses";
-import { getL2ContractAt, l2String, sendMessageToL2 } from "./utils/utils";
+import { getL2ContractAt, l2String } from "./utils/utils";
 import daiAbi from "./abis/daiAbi";
 import { WrappedStarknetContract, wrapTyped } from "./utils/wrap";
 import l2DaiBridgeAbi from "./abis/l2DaiBridgeAbi";
@@ -96,10 +96,10 @@ describe("goerli spell", () => {
     // @ts-ignore
     const { transaction_hash } = await hre.starknet.devnet.sendMessageToL2(
       relay.address,
-      'relay',
+      "relay",
       L1_GOVERNANCE_RELAY_ADDRESS,
       [BigInt(classHash)],
-      0n,
+      0n
     );
 
     const receipt = await hre.starknet.getTransactionReceipt(transaction_hash);
@@ -127,10 +127,10 @@ describe("goerli spell", () => {
 
       await hre.starknet.devnet.sendMessageToL2(
         bridge.address,
-        'handle_deposit',
+        "handle_deposit",
         l1Bridge,
         [BigInt(recipient.address), amount, 0n, 0n],
-        0n,
+        0n
       );
 
       const balanceAfter: bigint = await dai.balanceOf(recipient.address);
