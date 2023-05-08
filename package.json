@@ -7,7 +7,6 @@
   "license": "AGPL-3.0",
   "scripts": {
     "build": "tsc",
-    "start": "node ./bin/app.js",
     "devnet": "./scripts/devnet.sh",
     "format": "prettier --check \"./**/*.ts\"",
     "format:fix": "prettier --write \"./**/*.ts\"",
@@ -20,7 +19,7 @@
   "dependencies": {},
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.1",
-    "@shardlabs/starknet-hardhat-plugin": "^0.7.3",
+    "@shardlabs/starknet-hardhat-plugin": "^v0.8.0-alpha.1",
     "@types/lodash": "^4.14.191",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.13",

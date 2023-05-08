@@ -13,22 +13,8 @@ const config = {
     },
   },
   starknet: {
-    dockerizedVersion: "0.10.3",
+    dockerizedVersion: "0.11.0.2",
     network: "devnet",
-    // wwallets: {
-    //   user: {
-    //     accountName: "user",
-    //     modulePath:
-    //       "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
-    //     accountPath: "~/.starknet_accounts",
-    //   },
-    //   deployer: {
-    //     accountName: "deployer",
-    //     modulePath:
-    //       "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
-    //     accountPath: "~/.starknet_accounts",
-    //   },
-    // },
   },
   paths: {
     artifacts: "./artifacts",
