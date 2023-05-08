@@ -9,4 +9,4 @@ if [ "$(uname)" == "Darwin" ]; then
 fi
 
 docker rm -f devnet
-exec docker run --name devnet -p 127.0.0.1:5050:5050 ${image} --seed 0 --fork-network alpha-goerli
+exec docker run --name devnet -p 127.0.0.1:5050:5050 ${image} --seed 0 --fork-retries 3 --fork-network alpha-goerli
