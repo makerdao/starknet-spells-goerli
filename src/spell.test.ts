@@ -87,13 +87,17 @@ describe("goerli spell", () => {
       predeployedAccounts.push(account);
     }
 
-    await hre.run("starknet-compile-deprecated", { paths: ["src/spell.cairo"] });
+    await hre.run("starknet-compile-deprecated", {
+      paths: ["src/spell.cairo"],
+    });
 
     try {
       const spellDeployer = predeployedAccounts[0];
       const spellFactory = await hre.starknet.getContractFactory("spell");
       const declareTxHash = await spellDeployer.declare(spellFactory);
-      const declareReceipt = await hre.starknet.getTransactionReceipt(declareTxHash);
+      const declareReceipt = await hre.starknet.getTransactionReceipt(
+        declareTxHash
+      );
       expect(declareReceipt.status).toEqual("ACCEPTED_ON_L2");
 
       const classHash = await spellFactory.getClassHash();
@@ -107,7 +111,9 @@ describe("goerli spell", () => {
         1n
       );
 
-      const receipt = await hre.starknet.getTransactionReceipt(transaction_hash);
+      const receipt = await hre.starknet.getTransactionReceipt(
+        transaction_hash
+      );
       expect(receipt.status).toEqual("ACCEPTED_ON_L2");
     } catch (e) {
       // @ts-ignore
@@ -185,7 +191,12 @@ describe("goerli spell", () => {
         1n
       );
       teleport.connect(recipient);
-      const { status } = await teleport.initiate_teleport(l2String(TRG_DOMAIN), 0n, 1n, 0n);
+      const { status } = await teleport.initiate_teleport(
+        l2String(TRG_DOMAIN),
+        0n,
+        1n,
+        0n
+      );
       expect(status).toEqual("ACCEPTED_ON_L2");
     });
   });
